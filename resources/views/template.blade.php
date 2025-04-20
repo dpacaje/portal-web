@@ -11,10 +11,15 @@
 
         <link rel="stylesheet" href="{{ asset('assets/fontawesome/css/all.min.css') }}">
         <script src="{{ asset('assets/fontawesome/js/all.min.js') }}"></script>
-        
-        <link rel="stylesheet" href="{{ asset('assets/css/mapp.css') }}">
+
+        <script src="{{ asset('assets/jquery-3.7.1/js/jquery-3.7.1.min.js') }}"></script>
+        <script src="{{ asset('assets/sweetalert2/js/sweetalert2@11.js') }}"></script>
+
         <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}">
         <script src="{{ asset('assets/js/scripts.js') }}"></script>
+
+        @stack('styles')
+        @stack('scripts')
 
     </head>
     <body>
