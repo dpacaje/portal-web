@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index']);
 
 Route::get('/Administracion', function () {
-    return view('Admin.dashboard');
+    echo 'Administracion';
+    // return view('Admin.dashboard');
 });
 
 Route::prefix('permisocirculacion')->group(function () {

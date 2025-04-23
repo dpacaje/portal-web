@@ -29,12 +29,16 @@ class MaestroPermisoService
             }
 
             foreach ($deuda as $item) {
-                $intereses = $this->calcularIpc($item->ano_cargo, $item->tipo_cargo, $item->id_tipo_vehiculo, $item->pago_monto_neto);
+                $neto = ($item->pago_monto_neto + $pago_correccion);
+                $intereses = $this->calcularIpc($item->ano_cargo, $item->tipo_cargo, $item->id_tipo_vehiculo, $neto);
 
                 if (is_null($intereses)) {
                     throw new \Exception('No se pudo calcular los intereses y multas.');
                 }
                 dd($intereses);
+                if ($item->pago_interes != $intereses['interes'] || $item->pago_multa != $intereses['multa'] || $item->pago_total_calculado != $intereses['total']) {
+                    $actualizar = $this->_maestroPermisoRepository->actualizarMontos($item->ano_cargo, $item->placa_veh, $item->tipo_cargo, $intereses['interes'], $intereses['multa'], $intereses['total']);
+                }
             }
 
             $anterior = $this->_maestroPermisoRepository->obtenerDeudaAnterior($arr_rut[0], $arr_rut[1], $data->placa);
@@ -112,9 +116,13 @@ class MaestroPermisoService
             $interes = round($valor * $factor_ipc);
             $multa = round(($valor + ($valor * $factor_ipc)) * $factor_multa);
 
+            $total = ($valor + $interes + $multa);
+
             return [
+                'neto' => $valor,
                 'interes' => $interes,
                 'multa' => $multa,
+                'total' => $total
             ];
         } catch(\Exception $e) {
             Log::error('MaestroPermisoService::calcularIpc', [

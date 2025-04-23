@@ -11,7 +11,8 @@ class ParametrosGeneralesRepository implements ParametrosGeneralesRepositoryInte
 {
     public function getUtm(int $anio, int $mes): ?stdClass
     {
-        return DB::table('parametros_generales.utm')
+        return DB::connection('mysql2')
+        ->table('utm')
         ->where('utm_ano', $anio)
         ->where('utm_mes', $mes)
         ->first(['utm_utm']);
@@ -19,7 +20,8 @@ class ParametrosGeneralesRepository implements ParametrosGeneralesRepositoryInte
 
     public function getIpc(int $anio, int $mes, int $anio_tabla): ?stdClass
     {
-        return DB::table('parametros_generales.maestro_multas')
+        return DB::connection('mysql2')
+        ->table('maestro_multas')
         ->where('ano', $anio)
         ->where('mes', $mes)
         ->where('ano_tabla', $anio_tabla)
