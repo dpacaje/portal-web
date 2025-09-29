@@ -5,53 +5,62 @@ namespace App\Services\PermisoCirculacion;
 use App\DTOs\PermisoCirculacion\ObtenerDeudaDTO;
 use App\Interfaces\ParametrosGenerales\ParametrosGeneralesRepositoryInterface;
 use App\Interfaces\PermisoCirculacion\MaestroPermisoRepositoryInterface;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MaestroPermisoService
 {
     public function __construct(
-        protected MaestroPermisoRepositoryInterface $_maestroPermisoRepository,
-        protected ParametrosGeneralesRepositoryInterface $_parametrosGeneralesRepository,
+        protected readonly MaestroPermisoRepositoryInterface $_maestroPermisoRepository,
+        protected readonly ParametrosGeneralesRepositoryInterface $_parametrosGeneralesRepository,
     ) {}
+
+    public function obtenerPropietario(ObtenerDeudaDTO $data)
+    {
+        return $this->_maestroPermisoRepository->obtenerDatosPropietarioVehiculo($data->rutn, $data->rutdv, $data->placa);
+    }
 
     public function obtenerDeuda(ObtenerDeudaDTO $data)
     {
         try {
-            $arr_rut = separar_rut($data->rut);
-
-            $anterior = $this->_maestroPermisoRepository->obtenerDeudaAnterior($arr_rut[0], $arr_rut[1], $data->placa);
-            $actual = $this->_maestroPermisoRepository->obtenerDeudaActual($arr_rut[0], $arr_rut[1], $data->placa);
+            $anterior = $this->_maestroPermisoRepository->obtenerDeudaAnterior($data->rutn, $data->rutdv, $data->placa);
+            $actual = $this->_maestroPermisoRepository->obtenerDeudaActual($data->rutn, $data->rutdv, $data->placa);
             $deuda = $anterior->merge($actual);
 
             if ($deuda->isEmpty()) {
                 throw new \Exception('No se econtró deuda.');
             }
 
-            foreach ($deuda as $item) {
-                $neto = ($item->pago_monto_neto + $pago_correccion);
-                $intereses = $this->calcularIpc($item->ano_cargo, $item->tipo_cargo, $item->id_tipo_vehiculo, $neto);
-
-                if (is_null($intereses)) {
-                    throw new \Exception('No se pudo calcular los intereses y multas.');
+            DB::connection('mysql')->transaction(function () use ($deuda, $data) {
+                foreach ($deuda as $item) {
+                    $neto = ($item->pago_monto_neto + $item->pago_correccion);
+                    $valores_calculados = $this->calcularIpc($item->ano_cargo, $item->tipo_cargo, $item->id_tipo_vehiculo, $neto);
+    
+                    if (is_null($valores_calculados)) {
+                        throw new \Exception("No se pudo calcular los intereses y multas de {$item->ano_cargo}_{$item->placa_veh}_{$item->tipo_cargo}");
+                    }
+    
+                    if ($item->pago_interes != $valores_calculados['interes'] || $item->pago_multa != $valores_calculados['multa'] || $item->pago_total_calculado != $valores_calculados['total']) {
+                        $this->_maestroPermisoRepository->actualizarMontos($item->ano_cargo, $item->placa_veh, $item->tipo_cargo, $valores_calculados['interes'], $valores_calculados['multa'], $valores_calculados['total']);
+                    }
                 }
-                dd($intereses);
-                if ($item->pago_interes != $intereses['interes'] || $item->pago_multa != $intereses['multa'] || $item->pago_total_calculado != $intereses['total']) {
-                    $actualizar = $this->_maestroPermisoRepository->actualizarMontos($item->ano_cargo, $item->placa_veh, $item->tipo_cargo, $intereses['interes'], $intereses['multa'], $intereses['total']);
-                }
-            }
 
-            $anterior = $this->_maestroPermisoRepository->obtenerDeudaAnterior($arr_rut[0], $arr_rut[1], $data->placa);
-            $actual = $this->_maestroPermisoRepository->obtenerDeudaActual($arr_rut[0], $arr_rut[1], $data->placa);
-            $deuda = $anterior->merge($actual);
+                $this->_maestroPermisoRepository->actualizarEmail($data->rutn, $data->rutdv, $data->placa, $data->email);
+            });
 
-            return $deuda;
-        } catch (\Exception $e) {
+            $anterior = $this->_maestroPermisoRepository->obtenerDeudaAnterior($data->rutn, $data->rutdv, $data->placa);
+            $actual = $this->_maestroPermisoRepository->obtenerDeudaActual($data->rutn, $data->rutdv, $data->placa);
+
+            return [
+                'anterior' => $anterior,
+                'actual' => $actual,
+            ];
+        } catch (\Throwable $e) {
             Log::error('MaestroPermisoService::obtenerDeuda', [
                 'file' => $e->getFile(),
                 'error' => $e->getMessage()
             ]);
-            return [];
+            throw $e;
         }
     }
 
@@ -60,6 +69,15 @@ class MaestroPermisoService
         try {
             $anio_actual = date('Y');
             $mes_actual = date('n');
+
+            if ($anio_cargo > $anio_actual) {
+                return [
+                    'neto' => $valor,
+                    'interes' => 0,
+                    'multa' => 0,
+                    'total' => $valor
+                ];
+            }
 
             $data_ipc = $this->_parametrosGeneralesRepository->getIpc($anio_actual, $mes_actual, $anio_cargo);
 
@@ -124,8 +142,27 @@ class MaestroPermisoService
                 'multa' => $multa,
                 'total' => $total
             ];
-        } catch(\Exception $e) {
+        } catch(\Throwable $e) {
             Log::error('MaestroPermisoService::calcularIpc', [
+                'file' => $e->getFile(),
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    public function obtenerUltimoPermisoDeuda(array $permisos): ?object
+    {
+        try {
+            if (!$permisos['actual']) {
+                $perm = end($permisos['anterior']);
+            } else {
+                $perm = reset($permisos['actual']);
+            }
+
+            return $perm[0] ?? null;
+        } catch(\Throwable $e) {
+            Log::error('MaestroPermisoService::obtenerUltimoPermisoDeuda', [
                 'file' => $e->getFile(),
                 'error' => $e->getMessage()
             ]);

@@ -1,0 +1,96 @@
+:root {
+    --color1: #284B8B;
+    --color1-dark: #1B3870;
+    --color1-light: #3E609C;
+    --color2: #3E609C;
+    --color2-dark: #284B8B;
+    --color2-light: #4A68A1;
+}
+
+.bg-main {
+    background-color: var(--color1);
+}
+
+.bg-main2 {
+    background-color: var(--color2);
+}
+
+.text-main {
+    color: var(--color1);
+}
+
+.text-main2 {
+    color: var(--color2);
+}
+
+.border-main {
+    border-color: var(--color1);
+}
+
+.border-main2 {
+    border-color: var(--color2);
+}
+
+/* Botones Personalizados */
+/* Boton 1 */
+.btn-main {
+    background-color: var(--color1);
+    border-color: var(--color1);
+    color: white;
+}
+
+.btn-outline-main {
+    background-color: white;
+    border-color: var(--color1);
+    color: var(--color1);
+}
+
+.btn-main:active,
+.btn-main:focus,
+.btn-main:hover,
+.btn-outline-main:active,
+.btn-outline-main:focus,
+.btn-outline-main:hover {
+    background-color: var(--color1-dark) !important;
+    border-color: var(--color1-dark) !important;
+    color: white !important;
+}
+
+/* Boton 2 */
+.btn-main2 {
+    background-color: var(--color2);
+    border-color: var(--color2);
+    color: white;
+}
+
+.btn-outline-main2 {
+    background-color: white;
+    border-color: var(--color2);
+    color: var(--color2);
+}
+
+.btn-main2:active,
+.btn-main2:focus,
+.btn-main2:hover,
+.btn-outline-main2:active,
+.btn-outline-main2:focus,
+.btn-outline-main2:hover {
+    background-color: var(--color2-dark) !important;
+    border-color: var(--color2-dark) !important;
+    color: white !important;
+}
+/* Fin Botones Personalizados */
+
+/* Tabla Personalizada */
+.table-main thead th {
+    background-color: var(--color1-light);
+    border-color: var(--color1-light);
+    color: white;
+}
+/* Fin Tabla Personalizada */
+
+.accordion-modified .accordion-button:focus,
+.accordion-modified .accordion-button:not(.collapsed) {
+    background-color: white;
+    box-shadow: none;
+}

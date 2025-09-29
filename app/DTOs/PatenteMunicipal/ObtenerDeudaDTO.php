@@ -1,13 +1,13 @@
 <?php
 
-namespace App\DTOs\PermisoCirculacion;
+namespace App\DTOs\PatenteMunicipal;
 
 class ObtenerDeudaDTO
 {
     public function __construct(
         public int $rutn,
         public string $rutdv,
-        public string $placa,
+        public int $rol,
         public string $email,
     ) {}
 
@@ -18,7 +18,7 @@ class ObtenerDeudaDTO
         return new self(
             rutn: (int) $arr_rut[0],
             rutdv: $arr_rut[1],
-            placa: strtoupper($data['placa']),
+            rol: (int) $data['rol'],
             email: $data['email'],
         );
     }
