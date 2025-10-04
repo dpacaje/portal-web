@@ -1,10 +1,30 @@
 <?php
 
+// GLOBAL
+
 if (!function_exists('separar_rut')) {
     function separar_rut(string $rut): array {
         return explode('-', $rut);
     }
 }
+
+if (!function_exists('obtenerNuevoPagoId')) {
+    function obtenerNuevoPagoId(string $tipo, string|null $pago_id_actual): string {
+        $anio_actual = date('Y');
+        $prefijo = $tipo . $anio_actual;
+        $nuevo_correlativo = 1;
+
+        if (!is_null($pago_id_actual)) {
+            $ultimo_correlativo = substr($pago_id_actual, -8);
+            $nuevo_correlativo = (int) $ultimo_correlativo + 1;
+        }
+
+        $completar_correlativo = str_pad($nuevo_correlativo, 8, '0', STR_PAD_LEFT);
+        return $prefijo . $completar_correlativo;
+    }
+}
+
+// PERMISO CIRCULACION
 
 if (!function_exists('formatear_longitud_multa')) {
     function formatear_longitud_multa(string $multa_id) {

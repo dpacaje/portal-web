@@ -2,6 +2,7 @@
 
 namespace App\Services\PermisoCirculacion;
 
+use App\DTOs\PermisoCirculacion\ConfirmacionDeudaDTO;
 use App\DTOs\PermisoCirculacion\ObtenerDeudaDTO;
 use App\Interfaces\ParametrosGenerales\ParametrosGeneralesRepositoryInterface;
 use App\Interfaces\PermisoCirculacion\MaestroPermisoRepositoryInterface;
@@ -163,6 +164,34 @@ class MaestroPermisoService
             return $perm[0] ?? null;
         } catch(\Throwable $e) {
             Log::error('MaestroPermisoService::obtenerUltimoPermisoDeuda', [
+                'file' => $e->getFile(),
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    public function prepararDetallePrePago(ConfirmacionDeudaDTO $data)
+    {
+        try {
+            $str_permisos_anteriores = '';
+            $str_permisos_actuales = '';
+
+            if (!is_null($data->permiso_anterior)) {
+                $str_permisos_anteriores = implode(',', $data->permiso_anterior);
+            }
+
+            if (!is_null($data->permiso_actual)) {
+                $data = explode('_', $data->permiso_actual);
+                $p_placa = $data[1];
+                $p_tipocargo = $data[2];
+                $p_aniocargo = $data[3];
+                $str_permisos_actuales = $p_aniocargo . '_' . $p_tipocargo . '_' . $p_placa . ',';
+            }
+
+            return $str_permisos_actuales . $str_permisos_anteriores;
+        } catch (\Throwable $e) {
+            Log::error('MaestroPermisoService::procesarPrePago', [
                 'file' => $e->getFile(),
                 'error' => $e->getMessage()
             ]);

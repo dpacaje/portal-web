@@ -9,6 +9,7 @@ use App\Interfaces\PermisoCirculacion\MaestroPermisoRepositoryInterface;
 use App\Interfaces\PermisoCirculacion\MultaTransitoRepositoryInterface;
 use App\Interfaces\PermisoCirculacion\RevisionRepositoryInterface;
 use App\Interfaces\PermisoCirculacion\SeguroRepositoryInterface;
+use App\Interfaces\PermisoCirculacion\WebPagoRepositoryInterface;
 use App\Repositories\DerechoAseo\CuotaAseoRepository;
 use App\Repositories\ParametrosGenerales\ParametrosGeneralesRepository;
 use App\Repositories\PatenteMunicipal\PatenteRepository;
@@ -16,6 +17,7 @@ use App\Repositories\PermisoCirculacion\MaestroPermisoRepository;
 use App\Repositories\PermisoCirculacion\MultaTransitoRepository;
 use App\Repositories\PermisoCirculacion\RevisionRepository;
 use App\Repositories\PermisoCirculacion\SeguroRepository;
+use App\Repositories\PermisoCirculacion\WebPagoRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(MultaTransitoRepositoryInterface::class, MultaTransitoRepository::class);
         $this->app->bind(SeguroRepositoryInterface::class, SeguroRepository::class);
         $this->app->bind(RevisionRepositoryInterface::class, RevisionRepository::class);
+        $this->app->bind(WebPagoRepositoryInterface::class, WebPagoRepository::class);
         $this->app->bind(PatenteRepositoryInterface::class, PatenteRepository::class);
         $this->app->bind(CuotaAseoRepositoryInterface::class, CuotaAseoRepository::class);
         $this->app->bind(ParametrosGeneralesRepositoryInterface::class, ParametrosGeneralesRepository::class);

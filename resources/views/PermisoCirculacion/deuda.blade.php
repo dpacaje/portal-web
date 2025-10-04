@@ -13,8 +13,8 @@
         let elObjeto = new Object();
         let laCadena = new String();
         laCadena='';
-        let multa = document.getElementById("hdnmulta").value;
-        let hdnpermiso = document.getElementById("hdnpermiso");
+        let multa = document.getElementById("montomulta").value;
+        let montopermiso = document.getElementById("montopermiso");
         let span_total_input = document.getElementById('total_input');
         let id_btn_pago = document.getElementById('id_submit_form_pago');
 
@@ -39,7 +39,7 @@
                 elems[i+1].disabled = false;
             }
             span_total_input.textContent = suma;
-            hdnpermiso.value = suma;
+            montopermiso.value = suma;
             id_btn_pago.disabled = false;
         }
 
@@ -79,7 +79,7 @@
         let cantidad_ticket = 0;
         let suma_permiso=0;
         let elObjeto = new Object();
-        let hdnpermiso = document.getElementById('hdnpermiso');
+        let montopermiso = document.getElementById('montopermiso');
         let span_total_input = document.getElementById('total_input');
         let id_btn_pago = document.getElementById('id_submit_form_pago');
 
@@ -103,7 +103,7 @@
                     elObjeto = elems[i];
                 }
                 span_total_input.textContent = suma_permiso;
-                hdnpermiso.value = suma_permiso;
+                montopermiso.value = suma_permiso;
             }
         } else {
             for (let i = 0 ; i < elems.length ; i++) {
@@ -125,7 +125,7 @@
 <script>
     $(document).ready(function () {
         $('#form_pago').submit(function () {
-            if ($('#hdnpermiso').val() == '' || $('#hdnpermiso').val() == 0 || $('#hdnpermiso').val() == '0') {
+            if ($('#montopermiso').val() == '' || $('#montopermiso').val() == 0 || $('#montopermiso').val() == '0') {
                 alert('Seleccione un item a pagar para continuar.');
                 $('#id_submit_form_pago').prop('disabled', true);
                 return false;
@@ -218,13 +218,13 @@
         </div>
     </div>
 
-    <form action="#" method="POST" name="form_pago" id="form_pago" class="form-inline">
+    <form action="{{ route('permisocirculacion.confirmacion') }}" method="POST" name="form_pago" id="form_pago" class="form-inline">
         @csrf
-        <input type="hidden" name="hdnrut" id="hdnrut" value="<?= $rut ?>">
-        <input type="hidden" name="hdnplaca" id="hdnplaca" value="<?= $placa ?>">
-        <input type="hidden" name="hdncorreo" id="hdncorreo" value="<?= $email ?>">
-        <input type="hidden" name="hdnmulta" id="hdnmulta" value="<?= $monto_multa ?>">
-        <input type="hidden" name="hdnpermiso" id="hdnpermiso" value="0">
+        <input type="hidden" name="rut" id="rut" value="<?= $rut ?>">
+        <input type="hidden" name="placa" id="placa" value="<?= $placa ?>">
+        <input type="hidden" name="email" id="email" value="<?= $email ?>">
+        <input type="hidden" name="montomulta" id="montomulta" value="<?= $monto_multa ?>">
+        <input type="hidden" name="montopermiso" id="montopermiso" value="0">
         <div class="row">
             <?php if ($permisos_anterior): ?>
                 <div class="col-md-12">

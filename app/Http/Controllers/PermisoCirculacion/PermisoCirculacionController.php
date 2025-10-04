@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\PermisoCirculacion;
 
+use App\DTOs\PermisoCirculacion\ConfirmacionDeudaDTO;
 use App\DTOs\PermisoCirculacion\ObtenerDeudaDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PermisoCirculacion\ConfirmacionDeudaRequest;
 use App\Http\Requests\PermisoCirculacion\ObtenerDeudaRequest;
 use App\Services\PermisoCirculacion\MaestroPermisoService;
 use App\Services\PermisoCirculacion\MultaTransitoService;
 use App\Services\PermisoCirculacion\RevisionService;
 use App\Services\PermisoCirculacion\SeguroService;
+use Illuminate\Http\Request;
 
 class PermisoCirculacionController extends Controller
 {
@@ -58,6 +61,27 @@ class PermisoCirculacionController extends Controller
             $data['revision_tecnica'] = $estado_revision;
 
             return view('PermisoCirculacion.deuda')->with($data);
+        } catch (\Throwable $e) {
+            dd($e);
+        }
+    }
+
+    public function confirmacion(ConfirmacionDeudaRequest $request)
+    {
+        try {
+            dd($request);
+            $dto = ConfirmacionDeudaDTO::fromArray($request->validated());
+
+            // Validar Pagos Anteriores
+
+            // Validar Permisos
+
+            // Validar Multas
+
+            // Conversion de Datos
+            $this->_maestroPermisoService->prepararDetallePrePago($dto);
+
+            // Mostrar Vista
         } catch (\Throwable $e) {
             dd($e);
         }
