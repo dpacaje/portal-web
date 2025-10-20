@@ -17,7 +17,7 @@
                 <table class="table table-bordered">
                     <tr>
                         <th>Usted está pagando</th>
-                        <td><?= config('envar.APP_TIPO') ?></td>
+                        <td><?= config('envar.app_tipo') ?></td>
                     </tr>
                     <tr>
                         <th>Usted está pagando en</th>
@@ -25,7 +25,7 @@
                     </tr>
                     <tr>
                         <th>Url Comercio</th>
-                        <td><a href="<?= route('permisocirculacion.index') ?>" class="link-primary"><?= config('envar.APP_TIPO') . ' - ' . config('envar.APP_CLIENTE') ?></a></td>
+                        <td><a href="<?= route('permisocirculacion.index') ?>" class="link-primary"><?= config('envar.app_tipo') . ' - ' . config('envar.app_municipalidad') ?></a></td>
                     </tr>
                     <tr>
                         <th>Fecha y Hora de emisión</th>
@@ -52,8 +52,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($permisos_anteriores): ?>
-                            <?php foreach ($permisos_anteriores as $row): ?>
+                        <?php if ($permiso_anterior): ?>
+                            <?php foreach ($permiso_anterior as $row): ?>
                                 <?php $pago = explode('_', $row); ?>
                                 <tr>
                                     <td>Permiso Circulación</td>
@@ -63,8 +63,8 @@
                             <?php endforeach; ?>
                         <?php endif; ?>
 
-                        <?php if ($permisos_actuales): ?>
-                            <?php $pago = explode('_', $permisos_actuales); ?>
+                        <?php if ($permiso_actual): ?>
+                            <?php $pago = explode('_', $permiso_actual); ?>
                             <tr>
                                 <td>Permiso Circulación</td>
                                 <td>El pago corresponde a <?= format_tipo_cargo($pago[2]) ?> de la PPU <?= $pago[1] ?> del año <?= $pago[3] ?></td>
@@ -83,7 +83,7 @@
                         <?php endif; ?>
                         <tr>
                             <td colspan="2" class="text-end"><b>TOTAL A PAGAR</b></td>
-                            <td class="text-end">$<?= format_clp($total) ?></td>
+                            <td class="text-end">$<?= format_clp($monto_total) ?></td>
                         </tr>
                     </tbody>
                 </table>
@@ -94,7 +94,11 @@
     <div class="row">
         <div class="col-md-10 offset-md-1 d-flex justify-content-between">
             <a href="<?= route('permisocirculacion.index') ?>" class="btn btn-secondary">CANCELAR</a>
-            <a href="<?= $tbk_url ?>" class="btn btn-success">PAGAR</a>
+            <form action="{{ route('permisocirculacion.iniciarpago') }}" method="POST">
+                @csrf
+                <input type="hidden" name="hdndata" value="{{ $hdndata }}">
+                <input type="submit" value="PAGAR" class="btn btn-success">
+            </form>
         </div>
     </div>
 </div>  

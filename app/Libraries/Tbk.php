@@ -2,6 +2,7 @@
 
 namespace App\Libraries;
 
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -22,7 +23,7 @@ class Tbk
             'aplicacionId' => $this->tbk_app_id,
             'buyOrder' => $buy_order,
             'amount' => $amount,
-            'callbackUrl' => route('webpay_comprobante'),
+            'callbackUrl' => route('permisocirculacion.validarpago'),
             'anularUrl' => route('home')
         ];
 
@@ -33,13 +34,18 @@ class Tbk
                 'verify' => false
             ])->post('create', $data);
 
+            $response->throw();
+
             return [
                 'response' => $response->body(),
                 'statusCode' => $response->status(),
                 'isOK' => $response->successful()
             ];
+        } catch (RequestException $e) {
+            Log::error("Tbk::crear Error HTTP: {$e->response->status()}: {$e->getMessage()}");
+            return $this->handleError($e, $e->response->status());
         } catch (\Throwable $e) {
-            Log::warning("Tbk::crear error: {$e->getMessage()}");
+            Log::critical("Tbk::crear Error de Conexión: {$e->getMessage()}");
             return $this->handleError($e);
         }
     }
@@ -55,13 +61,18 @@ class Tbk
                 'session_id' => $session_id
             ]);
 
+            $response->throw();
+
             return [
                 'response' => $response->body(),
                 'statusCode' => $response->status(),
                 'isOK' => $response->successful()
             ];
+        } catch (RequestException $e) {
+            Log::error("Tbk::crear Error HTTP: {$e->response->status()}: {$e->getMessage()}");
+            return $this->handleError($e, $e->response->status());
         } catch (\Exception $e) {
-            Log::warning("Tbk::estadoPorSessionId error: {$e->getMessage()}");
+            Log::critical("Tbk::estadoPorSessionId Error de Conexión: {$e->getMessage()}");
             return $this->handleError($e);
         }
     }
@@ -78,25 +89,30 @@ class Tbk
                 'token' => $token
             ]);
 
+            $response->throw();
+
             return [
                 'response' => $response->body(),
                 'statusCode' => $response->status(),
                 'isOK' => true
             ];
+        } catch (RequestException $e) {
+            Log::error("Tbk::estadoPortoken Error HTTP: {$e->response->status()}: {$e->getMessage()}");
+            return $this->handleError($e, $e->response->status());
         } catch (\Throwable $e) {
-            Log::warning("Tbk::estadoPortoken error: {$e->getMessage()}");
+            Log::critical("Tbk::estadoPortoken Error de Conexión: {$e->getMessage()}");
             return $this->handleError($e);
         }
     }
 
-    private function handleError(\Throwable $e): array
+    private function handleError(\Throwable $e, int $statusCode = 500): array
     {
         return [
             'response' => json_encode([
                 'error' => 'Error al consumir API TBK',
                 'message' => $e->getMessage()
             ]),
-            'statusCode' => $e->getCode() ?: 500,
+            'statusCode' => $statusCode,
             'isOK' => false
         ];
     }

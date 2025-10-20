@@ -11,6 +11,7 @@ interface MaestroPermisoRepositoryInterface
     public function obtenerDatosPropietarioVehiculo(int $rut, string $dv, string $placa): ?stdClass;
     public function obtenerDeudaAnterior(int $rut, string $dv, string $placa): Collection;
     public function obtenerDeudaActual(int $rut, string $dv, string $placa): Collection;
+    public function obtenerDeudaPorMonto(int $anio, string $placa, int $tipo_cargo, int $monto): ?stdClass;
     public function obtenerPermisosPagados(int $rut, string $dv, string $placa): Collection;
     public function obtenerPermisosPagadosPorPagoid(string $placa, string $pago_id): Collection;
     public function obtenerPagosNoCentralizados(): Collection;

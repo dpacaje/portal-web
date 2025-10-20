@@ -26,8 +26,8 @@ class ConfirmacionDeudaDTO
             email: $data['email'],
             monto_permiso: $data['montopermiso'],
             monto_multa: $data['montomulta'],
-            permiso_anterior: $data['pago_ant'],
-            permiso_actual: $data['check-pago'],
+            permiso_anterior: $data['pago_ant'] ?? null,
+            permiso_actual: $data['check-pago'] ?? null,
         );
     }
 }

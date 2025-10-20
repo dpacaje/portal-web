@@ -8,9 +8,12 @@ use stdClass;
 interface WebPagoRepositoryInterface
 {
     // === READ ===
-    public function obtenerUltimosIntentosPagos(string $placa, int $fecha_limite): Collection;
-    public function obtenerUltimoPagoId(string $pago_id): stdclass;
+    public function obtenerUltimoIntentoPago(string $placa, int $fecha_limite): ?stdclass;
+    public function obtenerUltimoPagoId(string $pago_id): ?stdclass;
+    public function obtenerPorPagoId(string $pago_id): ?stdclass;
     // === UPDATE ===
-    public function pagarPermisoDif(int $anio, string $placa, int $tipo_cargo, int $estado, string $descripcion): bool;
-    public function centralizarPermiso(int $anio, string $placa, int $tipo_cargo, string $pago_id): bool;
+    public function crear(array $data): bool;
+    public function agregarToken(string $pago_id, string $token, string $sistema_pagador, string $ecosistema, string $navegador, string $navegador_version): bool;
+    public function pagar(string $pago_id, array $data);
+    public function rechazar(string $pago_id, array $data);
 }

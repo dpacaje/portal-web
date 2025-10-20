@@ -4,6 +4,7 @@ namespace App\Http\Controllers\PermisoCirculacion;
 
 use App\DTOs\PermisoCirculacion\ConfirmacionDeudaDTO;
 use App\DTOs\PermisoCirculacion\ObtenerDeudaDTO;
+use App\Enums\TipoPortal;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PermisoCirculacion\ConfirmacionDeudaRequest;
 use App\Http\Requests\PermisoCirculacion\ObtenerDeudaRequest;
@@ -11,7 +12,9 @@ use App\Services\PermisoCirculacion\MaestroPermisoService;
 use App\Services\PermisoCirculacion\MultaTransitoService;
 use App\Services\PermisoCirculacion\RevisionService;
 use App\Services\PermisoCirculacion\SeguroService;
+use App\Services\PermisoCirculacion\WebPagoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class PermisoCirculacionController extends Controller
 {
@@ -20,6 +23,7 @@ class PermisoCirculacionController extends Controller
         protected readonly MultaTransitoService $_multaTransitoService,
         protected readonly SeguroService $_seguroService,
         protected readonly RevisionService $_revisionService,
+        protected readonly WebPagoService $_webPagoService,
     ) {}
 
     public function index()
@@ -69,19 +73,54 @@ class PermisoCirculacionController extends Controller
     public function confirmacion(ConfirmacionDeudaRequest $request)
     {
         try {
-            dd($request);
             $dto = ConfirmacionDeudaDTO::fromArray($request->validated());
 
-            // Validar Pagos Anteriores
+            $ultimo_intento_pago = $this->_webPagoService->validarUltimosIntentosPagos($dto->placa);
 
-            // Validar Permisos
+            if ($ultimo_intento_pago) {
+                return view('PermisoCirculacion.index');
+            }
 
-            // Validar Multas
+            $permisos_corectos = $this->_maestroPermisoService->validarPermisosPrePago($dto->monto_permiso, $dto->permiso_anterior, $dto->permiso_actual);
 
-            // Conversion de Datos
-            $this->_maestroPermisoService->prepararDetallePrePago($dto);
+            if (!$permisos_corectos) {
+                return view('PermisoCirculacion.index');
+            }
 
-            // Mostrar Vista
+            $monto_multa_recalculada = $this->_multaTransitoService->obtenerDeudaMonto($dto->placa);
+
+            if ($dto->monto_multa != $monto_multa_recalculada) {
+                return view('PermisoCirculacion.index');
+            }
+
+            $detalle_permiso = $this->_maestroPermisoService->prepararDetallePrePago($dto);
+            $detalle_multa = $this->_multaTransitoService->prepararDetallePrePago($dto->placa);
+
+            $data['rut'] = $dto->rutn . '-' . $dto->rutdv;
+            $data['placa'] = $dto->placa;
+            $data['email'] = $dto->email;
+            $data['monto_permiso'] = $dto->monto_permiso;
+            $data['monto_multa'] = $dto->monto_multa;
+            $data['monto_total'] = (int) $dto->monto_permiso + $dto->monto_multa;
+            $data['permiso_anterior'] = $dto->permiso_anterior;
+            $data['permiso_actual'] = $dto->permiso_actual;
+
+            $datos_calculados = [
+                'placa' => $dto->placa,
+                'monto_permiso' => $dto->monto_permiso,
+                'monto_multa' => $dto->monto_multa,
+                'monto_total' => $dto->monto_permiso + $dto->monto_multa,
+                'detalle_permiso' => $detalle_permiso,
+                'detalle_multa' => $detalle_multa,
+                'tipoportal' => TipoPortal::PERMISOCIRCULACION,
+                'fecha_expiracion' => now()->addMinutes(30)->timestamp
+            ];
+
+            $datos_calculados_encriptados = Crypt::encrypt($datos_calculados);
+
+            $data['hdndata'] = $datos_calculados_encriptados;
+
+            return view('PermisoCirculacion.confirmacion')->with($data);
         } catch (\Throwable $e) {
             dd($e);
         }

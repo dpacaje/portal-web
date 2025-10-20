@@ -171,6 +171,71 @@ class MaestroPermisoService
         }
     }
 
+    public function validarPermisosPrePago(int $monto_permiso, null|array $permisos_anteriores, null|string $permisos_actuales)
+    {
+        $subtotal = 0;
+
+        if (is_null($permisos_anteriores) && is_null($permisos_actuales)) {
+            return false;
+        }
+
+        if (!is_null($permisos_anteriores)) {
+            foreach ($permisos_anteriores as $row) {
+                $data = explode('_', $row);
+                $p_monto = $data[0];
+                $p_placa = $data[1];
+                $p_tipocargo = $data[2];
+                $p_aniocargo = $data[3];
+
+                if ($p_monto < 100) {
+                    return false;
+                }
+
+                $permiso = $this->_maestroPermisoRepository->obtenerDeudaPorMonto($p_aniocargo, $p_placa, $p_tipocargo, $p_monto);
+
+                if (!$permiso) {
+                    return false;
+                } else {
+                    if ($p_monto != $permiso->pago_total_calculado) {
+                        return false;
+                    } else {
+                        $subtotal += $permiso->pago_total_calculado;
+                    }
+                }
+            }
+        }
+
+        if (!is_null($permisos_actuales)) {
+            $data = explode('_', $permisos_actuales);
+            $p_monto = $data[0];
+            $p_placa = $data[1];
+            $p_tipocargo = $data[2];
+            $p_aniocargo = $data[3];
+
+            if ($p_monto < 100) {
+                return false;
+            }
+
+            $permiso = $this->_maestroPermisoRepository->obtenerDeudaPorMonto($p_aniocargo, $p_placa, $p_tipocargo, $p_monto);
+
+            if (!$permiso) {
+                return false;
+            } else {
+                if ($p_monto != $permiso->pago_total_calculado) {
+                    return false;
+                } else {
+                    $subtotal += $permiso->pago_total_calculado;
+                }
+            }
+        }
+
+        if ($monto_permiso != $subtotal) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function prepararDetallePrePago(ConfirmacionDeudaDTO $data)
     {
         try {
@@ -196,6 +261,41 @@ class MaestroPermisoService
                 'error' => $e->getMessage()
             ]);
             return null;
+        }
+    }
+
+    public function pagarPermisos(string $pago_id, string $detalle_permiso)
+    {
+        $array_permisos = explode(',', $detalle_permiso);
+        $fecha_actual = date('Y');
+
+        foreach ($array_permisos as $row) {
+            $arr_perm = explode('_', $row);
+
+            if (count($arr_perm) == 3) {
+                $anio_cargo = $arr_perm[0];
+                $tipo_cargo = $arr_perm[1];
+                $placa = $arr_perm[2];
+
+                $this->_maestroPermisoRepository->pagarPermiso($anio_cargo, $placa, $tipo_cargo, $pago_id, $fecha_actual);
+                $this->pagarPermisosDif($anio_cargo, $placa, $tipo_cargo);
+            } else if (count($arr_perm) == 4) {
+                $anio_cargo = $arr_perm[3];
+                $tipo_cargo = $arr_perm[2];
+                $placa = $arr_perm[1];
+
+                $this->_maestroPermisoRepository->pagarPermiso($anio_cargo, $placa, $tipo_cargo, $pago_id, $fecha_actual);
+                $this->pagarPermisosDif($anio_cargo, $placa, $tipo_cargo);
+            }
+        }
+    }
+
+    public function pagarPermisosDif(int $anio_cargo, string $placa, int $tipo_cargo)
+    {
+        if ($tipo_cargo == 0) {
+            $this->_maestroPermisoRepository->pagarPermisoDif($anio_cargo, $placa, 1, 4, 'pagado por total');
+        } else if ($tipo_cargo == 1) {
+            $this->_maestroPermisoRepository->pagarPermisoDif($anio_cargo, $placa, 0, 3, 'pagado por 1era cuota');
         }
     }
 }

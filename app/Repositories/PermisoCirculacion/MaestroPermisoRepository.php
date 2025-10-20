@@ -49,6 +49,17 @@ class MaestroPermisoRepository implements MaestroPermisoRepositoryInterface
         ->get();
     }
 
+    public function obtenerDeudaPorMonto(int $anio, string $placa, int $tipo_cargo, int $monto): ?stdClass
+    {
+        return DB::table('pc_maestro_permisos')
+        ->where('ano_cargo', $anio)
+        ->where('placa_veh', $placa)
+        ->where('tipo_cargo', $tipo_cargo)
+        ->where('pago_total_calculado', $monto)
+        ->where('estado', 0)
+        ->first();
+    }
+
     public function obtenerPermisosPagados(int $rut, string $dv, string $placa): Collection
     {
         return DB::table('pc_maestro_permisos')

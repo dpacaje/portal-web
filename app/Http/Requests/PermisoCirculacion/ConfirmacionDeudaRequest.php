@@ -20,7 +20,7 @@ class ConfirmacionDeudaRequest extends FormRequest
             'placa' => 'required|alpha_num|size:6',
             'email' => 'required|email:rfc,dns',
             'montomulta' => 'required|integer|min:0',
-            'montopermiso' => 'required|integer|min:20',
+            'montopermiso' => 'required|integer|min:100',
             'pago_ant' => 'required_without:check-pago|nullable|array',
             'pago_ant.*' => 'required|string|regex:/^\d+_[a-zA-Z0-9]{6}_[012]_\d{4}$/',
             'check-pago' => 'required_without:pago_ant|nullable|string',
